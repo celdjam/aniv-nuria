@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Festa da Núria Esperança 🎬</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: url('https://m.media-amazon.com/images/I/71j6hA2R+2L._AC_SL1500_.jpg') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+    }
+
+    form {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 2rem;
+      border-radius: 1.5rem;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 1.2s ease;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      color: #ffdf5b;
+    }
+
+    h3 {
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+
+    input, select, button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.9rem;
+      border-radius: 0.6rem;
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #ffdf5b;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background-color: #ffd200;
+      transform: scale(1.05);
+    }
+
+    #msg {
+      margin-top: 1rem;
+      color: #a3ffb3;
+      font-weight: bold;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <form id="rsvpForm">
+    <h1>🎉 Festa da Núria Esperança 🎂</h1>
+    <h3>A Núria Esperança faz 10 anos! Junta-te a nós para uma tarde divertida no cinema 🍿</h3>
+    <p><strong>📍 Cinema NOS – Almada Forum</strong><br>🗓️ 12 de Outubro às 15h00</p>
+
+    <input type="text" id="nome" placeholder="O teu nome" required />
+    <select id="presenca" required>
+      <option value="">Vais à festa?</option>
+      <option value="Sim">Sim! Mal posso esperar 🎬</option>
+      <option value="Não">Infelizmente não 😢</option>
+    </select>
+    <button type="submit">Confirmar Presença</button>
+    <p id="msg"></p>
+  </form>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/TEU_SCRIPT_URL/exec";
+
+    const form = document.getElementById('rsvpForm');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+      const presenca = document.getElementById('presenca').value;
+
+      if (!nome || !presenca) {
+        msg.textContent = "Por favor, preenche todos os campos.";
+        msg.style.color = "#ffaaaa";
+        return;
+      }
+
+      msg.textContent = "A enviar resposta...";
+      msg.style.color = "#fff";
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, presenca })
+        });
+        msg.textContent = "✅ Obrigado! A tua resposta foi registada 💛";
+        msg.style.color = "#a3ffb3";
+        form.reset();
+      } catch (error) {
+        msg.textContent = "Erro ao enviar, tenta novamente 😕";
+        msg.style.color = "#ffaaaa";
+      }
+    });
+  </script>
+</body>
+</html>
