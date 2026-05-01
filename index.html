@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aniversário da Núria Esperança 🎬</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -171,6 +172,10 @@
       color: #ffdf5b;
       border-color: rgba(255,223,91,0.55);
     }
+    .copy-btn:focus-visible {
+      outline: 2px solid #ffdf5b;
+      outline-offset: 3px;
+    }
 
     /* Countdown */
     .countdown {
@@ -272,6 +277,10 @@
 
     .submit-btn:active:not(:disabled) { transform: translateY(0); }
     .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .submit-btn:focus-visible {
+      outline: 2px solid #1a0800;
+      outline-offset: 3px;
+    }
 
     /* Spinner */
     .spinner {
@@ -441,28 +450,60 @@
       document.getElementById('cd-secs').textContent  = String(s).padStart(2, '0');
     }
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    const countdownTimer = setInterval(() => {
+      updateCountdown();
+      if (eventDate - new Date() <= 0) clearInterval(countdownTimer);
+    }, 1000);
 
     // Copy details
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand('copy'); return true; } catch { return false; }
+      finally { document.body.removeChild(ta); }
+    }
+
     document.getElementById('copyBtn').addEventListener('click', () => {
       const text = '🎉 Aniversário da Núria Esperança\n📍 Cinema NOS – Almada Forum\n🗓️ 12 de Outubro às 15h30';
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtn');
-        btn.textContent = '✅ Copiado!';
-        setTimeout(() => { btn.textContent = '📋 Copiar detalhes'; }, 2000);
-      });
+      const btn = document.getElementById('copyBtn');
+      const promise = navigator.clipboard
+        ? navigator.clipboard.writeText(text)
+        : Promise.reject(new Error('clipboard unavailable'));
+      promise
+        .catch(() => {
+          if (!fallbackCopy(text)) throw new Error('copy failed');
+        })
+        .then(() => {
+          btn.textContent = '✅ Copiado!';
+          setTimeout(() => { btn.textContent = '📋 Copiar detalhes'; }, 2000);
+        })
+        .catch(() => {
+          btn.textContent = '❌ Erro ao copiar';
+          setTimeout(() => { btn.textContent = '📋 Copiar detalhes'; }, 2000);
+        });
     });
 
     // Confetti
     function launchConfetti() {
       const canvas = document.getElementById('confetti-canvas');
       const ctx = canvas.getContext('2d');
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width  = window.innerWidth  * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width  = window.innerWidth  + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.scale(dpr, dpr);
+
+      const logicalWidth  = window.innerWidth;
+      const logicalHeight = window.innerHeight;
 
       const colors = ['#ffdf5b','#ff9f43','#a3ffb3','#7b8cde','#ff6b9d','#ffffff','#ff4757'];
       const pieces = Array.from({ length: 160 }, () => ({
-        x: Math.random() * canvas.width,
+        x: Math.random() * logicalWidth,
         y: -12,
         r: Math.random() * 7 + 3,
         color: colors[Math.floor(Math.random() * colors.length)],
@@ -475,14 +516,14 @@
 
       let frame = 0;
       (function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
         let alive = false;
         pieces.forEach(p => {
           p.y += p.speed;
           p.wAngle += p.wSpeed;
           p.x += Math.sin(p.wAngle) * 1.5;
           p.angle += p.spin;
-          if (p.y < canvas.height + 20) alive = true;
+          if (p.y < logicalHeight + 20) alive = true;
           ctx.save();
           ctx.translate(p.x, p.y);
           ctx.rotate(p.angle);
@@ -492,7 +533,7 @@
         });
         frame++;
         if (alive && frame < 320) requestAnimationFrame(draw);
-        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        else ctx.clearRect(0, 0, logicalWidth, logicalHeight);
       })();
     }
 
